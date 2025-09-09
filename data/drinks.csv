@@ -1,0 +1,12 @@
+# drinks.csv
+drink_id,name,category,abv,ingredients
+1,"lemon_sour","sour",5,"shochu|soda|lemon"
+2,"highball_lemon","highball",7,"whisky|soda|lemon"
+3,"peach_oolong","cocktail",5,"peach_liqueur|oolong_tea"
+4,"orange_mojito","mojito",6,"rum|soda|orange|mint|sugar"
+5,"stout_beer","beer",6,"beer_malt|water|hop"
+6,"gin_tonic","cocktail",7,"gin|tonic_water|lime"
+7,"red_wine","wine",12,"grape|water"
+8,"draft_beer","beer",5,"beer_malt|water|hop"
+9,"cafe_latte","coffee",0,"coffee|milk"
+10,"energy_drink","soft_drink",0,"caffeine|sugar|carbonic_acid"

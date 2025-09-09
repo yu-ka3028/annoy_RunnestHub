@@ -1,0 +1,22 @@
+# data/interactions.csv
+user_id,item_type,item_id
+1,drink,1
+1,drink,3
+2,drink,2
+2,drink,4
+3,drink,3
+3,drink,7
+4,drink,4
+4,drink,9
+5,drink,2
+5,drink,8
+6,drink,1
+6,drink,5
+7,drink,4
+7,drink,9
+8,drink,3
+8,drink,6
+9,drink,1
+9,drink,9
+10,drink,2
+10,drink,5
