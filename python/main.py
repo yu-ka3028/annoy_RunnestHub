@@ -54,3 +54,20 @@ print(f"\ninteractions.csvのshape: {interactions_df.shape}")
 print(f"interactions.csvのcolumns: {list(interactions_df.columns)}")
 print("\ninteractions.csvのhead():")
 print(interactions_df.head())
+
+print("\n" + "="*50)
+print("3-2. ingredients列を分割してリスト化")
+print("="*50)
+
+drinks_df['ingredients_list'] = drinks_df['ingredients'].str.split('|')
+print("ingredients列を分割した結果:")
+print(drinks_df[['name', 'ingredients', 'ingredients_list']])
+
+print(f"\n分割後のingredients_listの例:")
+for i, row in drinks_df.head(3).iterrows():
+    print(f"{row['name']}: {row['ingredients_list']}")
+
+print(f"\ningredients_list列のデータ型: {type(drinks_df['ingredients_list'].iloc[0])}")
+print(f"各飲み物の材料数:")
+for i, row in drinks_df.iterrows():
+    print(f"{row['name']}: {len(row['ingredients_list'])}個の材料")
