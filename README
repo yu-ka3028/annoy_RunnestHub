@@ -1,4 +1,6 @@
-docker build -t python-app .
+
+cd python
+docker build -f Dockerfile -t python-app ..
 docker run -it python-app python main.py
 
 docker build -t ruby-app .
