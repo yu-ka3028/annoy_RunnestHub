@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import os
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 print("Hello from main.py!")
 print(f"Pandas version: {pd.__version__}")
@@ -129,3 +130,59 @@ print("結合後のデータの最初の5行:")
 print(merged_df.head())
 print(f"\n最終データのshape: {merged_df.shape}")
 print(f"最終データのメモリ使用量: {merged_df.memory_usage(deep=True).sum() / 1024:.2f} KB")
+
+print("\n" + "="*50)
+print("4-1. TfidfVectorizerでingredientsをベクトル化")
+print("="*50)
+
+# ingredients_listを文字列に変換（TfidfVectorizer用）
+ingredients_text = drinks_df['ingredients_list'].apply(lambda x: ' '.join(x) if isinstance(x, list) else str(x))
+print("ingredients_textの例:")
+for i, text in enumerate(ingredients_text.head(3)):
+    print(f"{drinks_df.iloc[i]['name']}: {text}")
+
+# TfidfVectorizerのパラメータ設定
+max_features = 20  # 最大特徴量数（重要度の高い20個の材料を特徴量として採用）
+min_df = 1         # 最小文書頻度（すべての材料を保持）
+max_df = 0.7       # 最大文書頻度（70%以上に出現する単語を除外）
+
+print(f"\nパラメータ設定の理由:")
+print(f"- max_features=20: 重要度の高い20個の材料を特徴量として採用")
+print(f"- min_df=1: すべての材料を保持（出現頻度で除外しない）")
+print(f"- max_df=0.7: 7個以上（70%）の飲み物に出現する単語を除外")
+
+print(f"\nTfidfVectorizerのパラメータ:")
+print(f"max_features: {max_features}")
+print(f"min_df: {min_df}")
+print(f"max_df: {max_df}")
+
+vectorizer = TfidfVectorizer(
+    max_features=max_features,
+    min_df=min_df,
+    max_df=max_df,
+    stop_words=None
+)
+
+ingredients_matrix = vectorizer.fit_transform(ingredients_text)
+print(f"\nベクトル化結果:")
+print(f"ベクトル行列のshape: {ingredients_matrix.shape}")
+print(f"ベクトル行列の型: {type(ingredients_matrix)}")
+print(f"ベクトル行列の密度: {ingredients_matrix.nnz / (ingredients_matrix.shape[0] * ingredients_matrix.shape[1]):.4f}")
+
+print(f"\nベクトル化された内容（最初の3つの飲み物）:")
+for i in range(min(3, ingredients_matrix.shape[0])):
+    print(f"{drinks_df.iloc[i]['name']}:")
+    print(f"  非ゼロ要素数: {ingredients_matrix[i].nnz}")
+    print(f"  ベクトル値: {ingredients_matrix[i].toarray()}")
+
+feature_names = vectorizer.get_feature_names_out()
+print(f"\n特徴量名（ingredients名）:")
+print(f"特徴量数: {len(feature_names)}")
+print(f"特徴量名一覧: {list(feature_names)}")
+print(f"\n各特徴量の重要度（TF-IDF値）の統計:")
+tfidf_scores = ingredients_matrix.toarray()
+for i, feature in enumerate(feature_names):
+    feature_scores = tfidf_scores[:, i]
+    non_zero_scores = feature_scores[feature_scores > 0]
+    if len(non_zero_scores) > 0:
+        print(f"{feature}: 平均={non_zero_scores.mean():.4f}, 最大={non_zero_scores.max():.4f}, 非ゼロ数={len(non_zero_scores)}")
