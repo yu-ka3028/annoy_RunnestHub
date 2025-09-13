@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import os
+import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 print("Hello from main.py!")
@@ -179,6 +180,9 @@ feature_names = vectorizer.get_feature_names_out()
 print(f"\n特徴量名（ingredients名）:")
 print(f"特徴量数: {len(feature_names)}")
 print(f"特徴量名一覧: {list(feature_names)}")
+print(f"feature_namesの型: {type(feature_names)}")
+print(f"feature_namesのdtype: {feature_names.dtype}")
+print(f"feature_namesのshape: {feature_names.shape}")
 print(f"\n各特徴量の重要度（TF-IDF値）の統計:")
 tfidf_scores = ingredients_matrix.toarray()
 for i, feature in enumerate(feature_names):
@@ -186,3 +190,114 @@ for i, feature in enumerate(feature_names):
     non_zero_scores = feature_scores[feature_scores > 0]
     if len(non_zero_scores) > 0:
         print(f"{feature}: 平均={non_zero_scores.mean():.4f}, 最大={non_zero_scores.max():.4f}, 非ゼロ数={len(non_zero_scores)}")
+
+print("\n" + "="*50)
+print("4-2. ベクトル化結果の保存と読み込み")
+print("="*50)
+
+save_dir = "saved_vectors"
+os.makedirs(save_dir, exist_ok=True)
+
+print(f"\n--- Step 1: pickleでベクトル化結果を保存 ---")
+
+vectorizer_pickle_path = os.path.join(save_dir, "vectorizer.pkl")
+ingredients_matrix_pickle_path = os.path.join(save_dir, "ingredients_matrix.pkl")
+feature_names_pickle_path = os.path.join(save_dir, "feature_names.pkl")
+
+with open(vectorizer_pickle_path, 'wb') as f:
+    pickle.dump(vectorizer, f)
+print(f"vectorizerを保存: {vectorizer_pickle_path}")
+
+with open(ingredients_matrix_pickle_path, 'wb') as f:
+    pickle.dump(ingredients_matrix, f)
+print(f"ingredients_matrixを保存: {ingredients_matrix_pickle_path}")
+
+with open(feature_names_pickle_path, 'wb') as f:
+    pickle.dump(feature_names, f)
+print(f"feature_namesを保存: {feature_names_pickle_path}")
+
+print(f"\n--- Step 2: numpyでベクトル化結果を保存 ---")
+
+ingredients_matrix_npy_path = os.path.join(save_dir, "ingredients_matrix.npy")
+feature_names_npy_path = os.path.join(save_dir, "feature_names.npy")
+
+np.save(ingredients_matrix_npy_path, ingredients_matrix.toarray())
+print(f"ingredients_matrixをnumpy形式で保存: {ingredients_matrix_npy_path}")
+
+np.save(feature_names_npy_path, feature_names)
+print(f"feature_namesをnumpy形式で保存: {feature_names_npy_path}")
+
+print(f"\n--- Step 3: 保存したファイルのサイズ確認 ---")
+import os.path
+
+files_to_check = [
+    vectorizer_pickle_path,
+    ingredients_matrix_pickle_path,
+    feature_names_pickle_path,
+    ingredients_matrix_npy_path,
+    feature_names_npy_path
+]
+
+for file_path in files_to_check:
+    if os.path.exists(file_path):
+        file_size = os.path.getsize(file_path)
+        print(f"{os.path.basename(file_path)}: {file_size:,} bytes ({file_size/1024:.2f} KB)")
+
+print(f"\n--- Step 4: pickleで保存したファイルから読み込み ---")
+
+with open(vectorizer_pickle_path, 'rb') as f:
+    loaded_vectorizer = pickle.load(f)
+print(f"vectorizerを読み込み完了")
+
+with open(ingredients_matrix_pickle_path, 'rb') as f:
+    loaded_ingredients_matrix = pickle.load(f)
+print(f"ingredients_matrixを読み込み完了")
+
+with open(feature_names_pickle_path, 'rb') as f:
+    loaded_feature_names = pickle.load(f)
+print(f"feature_namesを読み込み完了")
+
+print(f"\n読み込み結果の検証:")
+print(f"元のvectorizer型: {type(vectorizer)}")
+print(f"読み込みvectorizer型: {type(loaded_vectorizer)}")
+print(f"元のingredients_matrix shape: {ingredients_matrix.shape}")
+print(f"読み込みingredients_matrix shape: {loaded_ingredients_matrix.shape}")
+print(f"元のfeature_names shape: {feature_names.shape}")
+print(f"読み込みfeature_names shape: {loaded_feature_names.shape}")
+
+print(f"\nデータの一致確認:")
+print(f"ingredients_matrixが一致: {np.array_equal(ingredients_matrix.toarray(), loaded_ingredients_matrix.toarray())}")
+print(f"feature_namesが一致: {np.array_equal(feature_names, loaded_feature_names)}")
+
+print(f"\n--- Step 5: numpyで保存したファイルから読み込み ---")
+
+loaded_ingredients_matrix_npy = np.load(ingredients_matrix_npy_path)
+loaded_feature_names_npy = np.load(feature_names_npy_path, allow_pickle=True)
+
+print(f"numpy形式でingredients_matrixを読み込み完了")
+print(f"numpy形式でfeature_namesを読み込み完了")
+
+print(f"\nnumpy読み込み結果の検証:")
+print(f"読み込みingredients_matrix shape: {loaded_ingredients_matrix_npy.shape}")
+print(f"読み込みfeature_names shape: {loaded_feature_names_npy.shape}")
+
+print(f"\nnumpyデータの一致確認:")
+print(f"ingredients_matrixが一致: {np.array_equal(ingredients_matrix.toarray(), loaded_ingredients_matrix_npy)}")
+print(f"feature_namesが一致: {np.array_equal(feature_names, loaded_feature_names_npy)}")
+
+print(f"\n--- Step 6: 保存・読み込み機能のテスト ---")
+
+test_text = "コーヒー ミルク 砂糖"
+print(f"\nテスト用テキスト: '{test_text}'")
+
+test_vector = loaded_vectorizer.transform([test_text])
+print(f"テストベクトルのshape: {test_vector.shape}")
+print(f"テストベクトルの値: {test_vector.toarray()}")
+
+test_array = test_vector.toarray()[0]
+print(f"\nテストベクトルの詳細:")
+for i, (feature, value) in enumerate(zip(loaded_feature_names, test_array)):
+    if value > 0:
+        print(f"  {feature}: {value:.4f}")
+
+print(f"\n=== ベクトル化結果の保存と読み込みが完了しました ===")
