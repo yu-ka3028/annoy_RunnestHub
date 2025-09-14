@@ -404,6 +404,7 @@ def find_similar_drinks_annoy(drink_name, annoy_index, k=5):
     
     return results
 
+# より詳細なテスト用飲み物リスト
 test_drinks = ["lemon_sour", "gin_tonic", "cafe_latte"]
 k = 5
 
@@ -411,6 +412,187 @@ print(f"\n🧪 テスト用飲み物での検索実行:")
 for drink in test_drinks:
     results = find_similar_drinks_annoy(drink, cosine_annoy_index, k)
     print("\n" + "="*50)
+
+print(f"\n--- Step 2-2: 特定の組み合わせでの類似度分析 ---")
+
+def classify_ingredients(ingredients_list):
+    """
+    材料を分類する関数
+    """
+    # 分類定義
+    alcohol_types = {
+        '蒸留酒': ['whisky', 'shochu', 'gin', 'rum', 'vodka', 'tequila'],
+        '醸造酒': ['beer_malt', 'wine', 'sake'],
+        'リキュール': ['peach_liqueur', 'orange_liqueur', 'coffee_liqueur', 'almond_liqueur']
+    }
+    
+    carbonated = ['soda', 'tonic_water', 'carbonic_acid']
+    fruits = ['lemon', 'orange', 'peach', 'lime', 'grapefruit']
+    dairy = ['milk', 'cream', 'yogurt']
+    caffeine = ['coffee', 'tea', 'oolong_tea', 'green_tea']
+    
+    classifications = {
+        '酒類': [],
+        '炭酸': [],
+        '果実': [],
+        '乳製品': [],
+        'カフェイン': [],
+        'その他': []
+    }
+    
+    for ingredient in ingredients_list:
+        classified = False
+        
+        # 酒類の分類
+        for category, types in alcohol_types.items():
+            if ingredient in types:
+                classifications['酒類'].append(f"{ingredient}({category})")
+                classified = True
+                break
+        
+        if not classified:
+            if ingredient in carbonated:
+                classifications['炭酸'].append(ingredient)
+                classified = True
+            elif ingredient in fruits:
+                classifications['果実'].append(ingredient)
+                classified = True
+            elif ingredient in dairy:
+                classifications['乳製品'].append(ingredient)
+                classified = True
+            elif ingredient in caffeine:
+                classifications['カフェイン'].append(ingredient)
+                classified = True
+            else:
+                classifications['その他'].append(ingredient)
+    
+    return classifications
+
+def compare_specific_drinks(drink1, drink2):
+    """
+    2つの飲み物の類似度を直接比較する関数
+    """
+    print(f"\n🔍 {drink1} vs {drink2} の類似度分析:")
+    
+    # 両方の飲み物の情報を取得
+    drink1_idx = drinks_df[drinks_df['name'] == drink1].index[0]
+    drink2_idx = drinks_df[drinks_df['name'] == drink2].index[0]
+    
+    print(f"🍹 {drink1}: {drinks_df.iloc[drink1_idx]['ingredients']}")
+    print(f"🍹 {drink2}: {drinks_df.iloc[drink2_idx]['ingredients']}")
+    
+    # 材料の共通性を分析
+    ingredients1 = set(drinks_df.iloc[drink1_idx]['ingredients'].split('|'))
+    ingredients2 = set(drinks_df.iloc[drink2_idx]['ingredients'].split('|'))
+    common_ingredients = ingredients1 & ingredients2
+    unique1 = ingredients1 - ingredients2
+    unique2 = ingredients2 - ingredients1
+    
+    print(f"📊 材料分析:")
+    print(f"   共通材料: {list(common_ingredients) if common_ingredients else 'なし'} ({len(common_ingredients)}個)")
+    print(f"   {drink1}のみ: {list(unique1)}")
+    print(f"   {drink2}のみ: {list(unique2)}")
+    
+    # 材料の分類表示
+    print(f"\n🏷️ 材料分類:")
+    for drink_name, ingredients_set in [(drink1, ingredients1), (drink2, ingredients2)]:
+        classifications = classify_ingredients(list(ingredients_set))
+        print(f"   {drink_name}:")
+        for category, items in classifications.items():
+            if items:
+                print(f"     {category}: {', '.join(items)}")
+    
+    # 類似度を計算
+    vector1 = ingredients_matrix[drink1_idx].toarray()[0]
+    vector2 = ingredients_matrix[drink2_idx].toarray()[0]
+    
+    # コサイン類似度を直接計算
+    dot_product = np.dot(vector1, vector2)
+    norm1 = np.linalg.norm(vector1)
+    norm2 = np.linalg.norm(vector2)
+    cosine_similarity = dot_product / (norm1 * norm2) if norm1 > 0 and norm2 > 0 else 0
+    
+    print(f"\n📈 類似度:")
+    print(f"   コサイン類似度: {cosine_similarity:.4f}")
+    print(f"   期待値: {'高い' if len(common_ingredients) > 0 else '低い'}")
+    
+    return {
+        'drink1': drink1,
+        'drink2': drink2,
+        'common_ingredients': len(common_ingredients),
+        'cosine_similarity': cosine_similarity
+    }
+
+# 特定の組み合わせをテスト
+test_combinations = [
+    ("stout_beer", "draft_beer"),      # 同じ材料
+    ("cafe_latte", "energy_drink"),    # カフェイン系
+    ("lemon_sour", "highball_lemon"),  # レモン系
+    ("gin_tonic", "orange_mojito"),    # 炭酸系
+    ("peach_oolong", "lemon_sour"),    # 全く異なる
+    ("red_wine", "stout_beer"),        # 酒類だが異なる
+]
+
+comparison_results = []
+for drink1, drink2 in test_combinations:
+    result = compare_specific_drinks(drink1, drink2)
+    comparison_results.append(result)
+    print("\n" + "-" * 60)
+
+# 結果のまとめ
+print(f"\n📋 類似度分析のまとめ:")
+print(f"{'飲み物1':<15} {'飲み物2':<15} {'共通材料':<8} {'類似度':<8} {'期待値との一致'}")
+print("-" * 70)
+for result in comparison_results:
+    expected = "高い" if result['common_ingredients'] > 0 else "低い"
+    actual = "高い" if result['cosine_similarity'] > 0.3 else "低い"
+    match = "✅" if (expected == actual) else "❌"
+    
+    print(f"{result['drink1']:<15} {result['drink2']:<15} {result['common_ingredients']:<8} {result['cosine_similarity']:<8.4f} {match}")
+
+print(f"\n--- Step 2-3: 全飲み物の類似度マトリックス ---")
+
+def create_similarity_matrix():
+    """
+    全飲み物の類似度マトリックスを作成する関数
+    """
+    print(f"\n🔍 全飲み物の類似度マトリックス:")
+    
+    n_drinks = len(drinks_df)
+    similarity_matrix = np.zeros((n_drinks, n_drinks))
+    
+    for i in range(n_drinks):
+        for j in range(n_drinks):
+            if i != j:
+                vector1 = ingredients_matrix[i].toarray()[0]
+                vector2 = ingredients_matrix[j].toarray()[0]
+                
+                dot_product = np.dot(vector1, vector2)
+                norm1 = np.linalg.norm(vector1)
+                norm2 = np.linalg.norm(vector2)
+                cosine_similarity = dot_product / (norm1 * norm2) if norm1 > 0 and norm2 > 0 else 0
+                
+                similarity_matrix[i, j] = cosine_similarity
+    
+    # 最も類似度が高い組み合わせを表示
+    print(f"\n📊 最も類似度が高い組み合わせ (上位5位):")
+    high_similarity_pairs = []
+    
+    for i in range(n_drinks):
+        for j in range(i+1, n_drinks):
+            similarity = similarity_matrix[i, j]
+            drink1 = drinks_df.iloc[i]['name']
+            drink2 = drinks_df.iloc[j]['name']
+            high_similarity_pairs.append((similarity, drink1, drink2))
+    
+    high_similarity_pairs.sort(reverse=True)
+    
+    for rank, (similarity, drink1, drink2) in enumerate(high_similarity_pairs[:5], 1):
+        print(f"   {rank}. {drink1} ↔ {drink2}: {similarity:.4f}")
+    
+    return similarity_matrix
+
+similarity_matrix = create_similarity_matrix()
 
 print(f"\n--- Step 3: インデックスの保存と読み込み ---")
 
