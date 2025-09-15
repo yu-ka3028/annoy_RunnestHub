@@ -1,8 +1,0 @@
-rank,drink_id,count,name,category,abv,ingredients,ingredients_list
-1,3,3,peach_oolong,cocktail,5,peach_liqueur|oolong_tea,"['peach_liqueur', 'oolong_tea']"
-2,1,2,lemon_sour,sour,5,shochu|soda|lemon,"['shochu', 'soda', 'lemon']"
-3,2,2,highball_lemon,highball,7,whisky|soda|lemon,"['whisky', 'soda', 'lemon']"
-4,5,2,stout_beer,beer,6,beer_malt|water|hop,"['beer_malt', 'water', 'hop']"
-5,7,1,red_wine,wine,12,grape|water,"['grape', 'water']"
-6,8,1,draft_beer,beer,5,beer_malt|water|hop,"['beer_malt', 'water', 'hop']"
-7,6,1,gin_tonic,cocktail,7,gin|tonic_water|lime,"['gin', 'tonic_water', 'lime']"
