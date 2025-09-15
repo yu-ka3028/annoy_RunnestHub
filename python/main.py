@@ -790,3 +790,128 @@ def compare_different_k_values(annoy_index, test_drink, k_values=[3, 5, 7, 10]):
 k_comparison = compare_different_k_values(cosine_annoy_index, "lemon_sour", [3, 5, 7, 10])
 
 print(f"\n=== annoyでの近似K近傍検索が完了しました ===")
+
+print("\n" + "="*50)
+print("6-1. Vim使いがよく飲むお酒ランキング")
+print("="*50)
+
+def get_vim_users_drink_ranking():
+    """
+    Vim使い（uses_vim=1）のユーザーがよく飲む飲み物のランキングを作成する関数
+    """
+    print(f"\n--- Step 1: Vim使いのユーザーを特定 ---")
+    
+    vim_users = users_df[users_df['uses_vim'] == 1]
+    print(f"Vim使いのユーザー数: {len(vim_users)}人")
+    print(f"Vim使いのユーザーID: {vim_users['user_id'].tolist()}")
+    
+    print(f"\nVim使いのユーザー詳細:")
+    for _, user in vim_users.iterrows():
+        print(f"  ユーザーID {user['user_id']}: {user['gender']}, {user['age']}歳, {user['favorite_lang']}, {user['editor']}")
+    
+    print(f"\n--- Step 2: Vim使いの飲み物選択を抽出 ---")
+
+    vim_user_ids = vim_users['user_id'].tolist()
+    vim_interactions = interactions_df[interactions_df['user_id'].isin(vim_user_ids)]
+    print(f"Vim使いの飲み物選択総数: {len(vim_interactions)}回")
+
+    print(f"\nVim使いの飲み物選択詳細:")
+    for _, interaction in vim_interactions.iterrows():
+        user_info = vim_users[vim_users['user_id'] == interaction['user_id']].iloc[0]
+        drink_info = drinks_df[drinks_df['drink_id'] == interaction['item_id']].iloc[0]
+        print(f"  ユーザーID {interaction['user_id']} ({user_info['favorite_lang']}) → {drink_info['name']} ({drink_info['category']})")
+    
+    print(f"\n--- Step 3: 飲み物別の選択回数をカウント ---")
+
+    drink_counts = vim_interactions['item_id'].value_counts().reset_index()
+    drink_counts.columns = ['drink_id', 'count']
+
+    drink_ranking = pd.merge(drink_counts, drinks_df, on='drink_id', how='inner')
+
+    drink_ranking = drink_ranking.sort_values('count', ascending=False).reset_index(drop=True)
+    
+    print(f"\n--- Step 4: ランキング結果を表示 ---")
+    
+    print(f"\n🏆 Vim使いがよく飲むお酒ランキング:")
+    print("=" * 60)
+    print(f"{'順位':<4} {'飲み物名':<15} {'カテゴリ':<12} {'選択回数':<8} {'アルコール度数':<10} {'材料'}")
+    print("-" * 60)
+    
+    for rank, (_, row) in enumerate(drink_ranking.iterrows(), 1):
+        print(f"{rank:<4} {row['name']:<15} {row['category']:<12} {row['count']:<8} {row['abv']:<10} {row['ingredients']}")
+
+    print(f"\n📊 ランキング統計:")
+    print(f"   総選択回数: {drink_ranking['count'].sum()}回")
+    print(f"   飲み物種類数: {len(drink_ranking)}種類")
+    print(f"   平均選択回数: {drink_ranking['count'].mean():.2f}回")
+    print(f"   最多選択回数: {drink_ranking['count'].max()}回")
+    print(f"   最少選択回数: {drink_ranking['count'].min()}回")
+
+    print(f"\n📈 カテゴリ別集計:")
+    category_stats = drink_ranking.groupby('category').agg({
+        'count': ['sum', 'mean', 'count']
+    }).round(2)
+    category_stats.columns = ['総選択回数', '平均選択回数', '飲み物種類数']
+    print(category_stats)
+
+    print(f"\n🍺 アルコール度数別集計:")
+    alcohol_stats = drink_ranking.groupby('abv').agg({
+        'count': ['sum', 'mean', 'count']
+    }).round(2)
+    alcohol_stats.columns = ['総選択回数', '平均選択回数', '飲み物種類数']
+    print(alcohol_stats)
+    
+    return drink_ranking
+
+vim_drink_ranking = get_vim_users_drink_ranking()
+
+print(f"\n--- Step 5: ランキング結果の詳細分析 ---")
+
+def analyze_vim_drink_preferences(ranking_df):
+    """
+    Vim使いの飲み物嗜好を詳細分析する関数
+    """
+    print(f"\n🔍 Vim使いの飲み物嗜好分析:")
+
+    print(f"\n🥇 上位3位の詳細分析:")
+    for rank, (_, row) in enumerate(ranking_df.head(3).iterrows(), 1):
+        print(f"\n{rank}位: {row['name']}")
+        print(f"   カテゴリ: {row['category']}")
+        print(f"   アルコール度数: {row['abv']}%")
+        print(f"   材料: {row['ingredients']}")
+        print(f"   選択回数: {row['count']}回")
+
+        ingredients = row['ingredients'].split('|')
+        print(f"   材料数: {len(ingredients)}個")
+        print(f"   材料詳細: {', '.join(ingredients)}")
+
+    alcohol_drinks = ranking_df[ranking_df['abv'] > 0]
+    non_alcohol_drinks = ranking_df[ranking_df['abv'] == 0]
+    
+    print(f"\n🍻 アルコール系 vs ノンアルコール系:")
+    print(f"   アルコール系: {len(alcohol_drinks)}種類, 総選択回数 {alcohol_drinks['count'].sum()}回")
+    print(f"   ノンアルコール系: {len(non_alcohol_drinks)}種類, 総選択回数 {non_alcohol_drinks['count'].sum()}回")
+    
+    if len(alcohol_drinks) > 0:
+        print(f"   アルコール系平均選択回数: {alcohol_drinks['count'].mean():.2f}回")
+    if len(non_alcohol_drinks) > 0:
+        print(f"   ノンアルコール系平均選択回数: {non_alcohol_drinks['count'].mean():.2f}回")
+
+    most_popular_category = ranking_df.groupby('category')['count'].sum().idxmax()
+    most_popular_count = ranking_df.groupby('category')['count'].sum().max()
+    print(f"\n🏆 最も人気のカテゴリ: {most_popular_category} ({most_popular_count}回選択)")
+
+    all_ingredients = []
+    for ingredients_str in ranking_df['ingredients']:
+        ingredients = ingredients_str.split('|')
+        all_ingredients.extend(ingredients)
+    
+    from collections import Counter
+    ingredient_counts = Counter(all_ingredients)
+    print(f"\n🥤 頻出材料トップ5:")
+    for ingredient, count in ingredient_counts.most_common(5):
+        print(f"   {ingredient}: {count}回使用")
+
+analyze_vim_drink_preferences(vim_drink_ranking)
+
+print(f"\n=== Vim使いがよく飲むお酒ランキングの集計が完了しました ===")
