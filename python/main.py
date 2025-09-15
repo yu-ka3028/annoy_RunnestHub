@@ -915,3 +915,233 @@ def analyze_vim_drink_preferences(ranking_df):
 analyze_vim_drink_preferences(vim_drink_ranking)
 
 print(f"\n=== Vim使いがよく飲むお酒ランキングの集計が完了しました ===")
+
+print("\n" + "="*50)
+print("6-2. 属性別ランキングの汎用化")
+print("="*50)
+
+def get_available_attributes():
+    """
+    利用可能な属性とその値を取得する関数
+    """
+    print(f"\n📋 利用可能な属性一覧:")
+    print("-" * 50)
+    
+    attributes = {
+        'gender': {'name': '性別', 'values': users_df['gender'].unique()},
+        'favorite_lang': {'name': '好きな言語', 'values': users_df['favorite_lang'].unique()},
+        'os': {'name': 'OS', 'values': users_df['os'].unique()},
+        'editor': {'name': 'エディタ', 'values': users_df['editor'].unique()},
+        'night_owl': {'name': '夜型', 'values': users_df['night_owl'].unique()},
+        'extroversion_tag': {'name': '性格タイプ', 'values': users_df['extroversion_tag'].unique()},
+        'ai_assistant': {'name': 'AIアシスタント', 'values': users_df['ai_assistant'].unique()},
+        'uses_vim': {'name': 'Vim使用', 'values': users_df['uses_vim'].unique()}
+    }
+    
+    for i, (attr_key, attr_info) in enumerate(attributes.items(), 1):
+        print(f"{i}. {attr_info['name']} ({attr_key})")
+        print(f"   利用可能な値: {', '.join(map(str, attr_info['values']))}")
+        print()
+    
+    return attributes
+
+def get_user_filters():
+    """
+    ユーザーからフィルタ条件を対話式で取得する関数
+    """
+    attributes = get_available_attributes()
+    filters = {}
+    
+    print(f"🔍 フィルタ条件を設定してください:")
+    print(f"複数の条件を設定できます。終了するには 'done' と入力してください。")
+    print("-" * 50)
+    
+    while True:
+        print(f"\n現在のフィルタ条件: {filters if filters else 'なし'}")
+        
+        try:
+            attr_choice = input(f"属性を選択してください (1-{len(attributes)}): ").strip()
+            
+            if attr_choice.lower() == 'done':
+                break
+                
+            attr_choice = int(attr_choice)
+            if attr_choice < 1 or attr_choice > len(attributes):
+                print(f"❌ 1から{len(attributes)}の間で入力してください")
+                continue
+                
+            attr_key = list(attributes.keys())[attr_choice - 1]
+            attr_info = attributes[attr_key]
+            
+            print(f"\n選択した属性: {attr_info['name']} ({attr_key})")
+            print(f"利用可能な値: {', '.join(map(str, attr_info['values']))}")
+            
+            attr_value = input(f"値を入力してください: ").strip()
+            
+            if attr_value not in map(str, attr_info['values']):
+                print(f"❌ 無効な値です。利用可能な値: {', '.join(map(str, attr_info['values']))}")
+                continue
+
+            if attr_key in ['night_owl', 'uses_vim']:
+                attr_value = int(attr_value)
+            
+            filters[attr_key] = attr_value
+            print(f"✅ フィルタ条件を追加: {attr_info['name']} = {attr_value}")
+            
+        except ValueError:
+            print(f"❌ 数値を入力してください")
+            continue
+        except KeyboardInterrupt:
+            print(f"\n\n👋 処理を中断しました")
+            return None
+    
+    return filters if filters else None
+
+def get_drink_ranking_by_filters(filters):
+    """
+    指定されたフィルタ条件で飲み物ランキングを作成する関数
+    """
+    print(f"\n--- Step 1: フィルタ条件でユーザーを抽出 ---")
+
+    filtered_users = users_df.copy()
+    
+    for attr_key, attr_value in filters.items():
+        filtered_users = filtered_users[filtered_users[attr_key] == attr_value]
+        print(f"   {attr_key} = {attr_value}: {len(filtered_users)}人")
+    
+    if len(filtered_users) == 0:
+        print(f"❌ 条件に合致するユーザーが見つかりませんでした")
+        return None
+    
+    print(f"✅ フィルタ後のユーザー数: {len(filtered_users)}人")
+    print(f"フィルタ後のユーザーID: {filtered_users['user_id'].tolist()}")
+    
+    print(f"\n--- Step 2: フィルタ後のユーザーの飲み物選択を抽出 ---")
+
+    filtered_user_ids = filtered_users['user_id'].tolist()
+    filtered_interactions = interactions_df[interactions_df['user_id'].isin(filtered_user_ids)]
+    print(f"フィルタ後のユーザーの飲み物選択総数: {len(filtered_interactions)}回")
+    
+    if len(filtered_interactions) == 0:
+        print(f"❌ 条件に合致するユーザーの飲み物選択が見つかりませんでした")
+        return None
+    
+    print(f"\n--- Step 3: 飲み物別の選択回数をカウント ---")
+
+    drink_counts = filtered_interactions['item_id'].value_counts().reset_index()
+    drink_counts.columns = ['drink_id', 'count']
+
+    drink_ranking = pd.merge(drink_counts, drinks_df, on='drink_id', how='inner')
+
+    drink_ranking = drink_ranking.sort_values('count', ascending=False).reset_index(drop=True)
+    
+    print(f"\n--- Step 4: ランキング結果を表示 ---")
+
+    filter_description = ", ".join([f"{attr_key}={value}" for attr_key, value in filters.items()])
+    
+    print(f"\n🏆 フィルタ条件 '{filter_description}' での飲み物ランキング:")
+    print("=" * 80)
+    print(f"{'順位':<4} {'飲み物名':<15} {'カテゴリ':<12} {'選択回数':<8} {'アルコール度数':<10} {'材料'}")
+    print("-" * 80)
+    
+    for rank, (_, row) in enumerate(drink_ranking.iterrows(), 1):
+        print(f"{rank:<4} {row['name']:<15} {row['category']:<12} {row['count']:<8} {row['abv']:<10} {row['ingredients']}")
+
+    print(f"\n📊 ランキング統計:")
+    print(f"   フィルタ条件: {filter_description}")
+    print(f"   対象ユーザー数: {len(filtered_users)}人")
+    print(f"   総選択回数: {drink_ranking['count'].sum()}回")
+    print(f"   飲み物種類数: {len(drink_ranking)}種類")
+    print(f"   平均選択回数: {drink_ranking['count'].mean():.2f}回")
+    print(f"   最多選択回数: {drink_ranking['count'].max()}回")
+    print(f"   最少選択回数: {drink_ranking['count'].min()}回")
+    
+    return drink_ranking, filters
+
+def save_ranking_to_csv(ranking_df, filters, filename=None):
+    """
+    ランキング結果をCSVファイルに保存する関数
+    """
+    if filename is None:
+
+        filter_str = "_".join([f"{k}_{v}" for k, v in filters.items()])
+        filename = f"drink_ranking_{filter_str}.csv"
+
+    ranking_with_rank = ranking_df.copy()
+    ranking_with_rank.insert(0, 'rank', range(1, len(ranking_with_rank) + 1))
+    
+
+    filter_description = ", ".join([f"{k}={v}" for k, v in filters.items()])
+
+    # 出力ディレクトリを作成（ホスト側からアクセス可能）
+    output_dir = "/app/output"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # フルパスでファイルを保存
+    full_path = os.path.join(output_dir, filename)
+    ranking_with_rank.to_csv(full_path, index=False, encoding='utf-8')
+    
+    print(f"\n💾 ランキング結果をCSVファイルに保存しました:")
+    print(f"   ファイル名: {filename}")
+    print(f"   保存パス: {full_path}")
+    print(f"   フィルタ条件: {filter_description}")
+    print(f"   保存行数: {len(ranking_with_rank)}行")
+    print(f"   📁 ホスト側では './output/{filename}' でアクセス可能です")
+    
+    return filename
+
+def interactive_drink_ranking():
+    """
+    対話式で飲み物ランキングを作成するメイン関数
+    """
+    print(f"\n🎯 属性別飲み物ランキング作成ツール")
+    print(f"このツールでは、ユーザーの属性に基づいて飲み物のランキングを作成できます。")
+    
+    while True:
+        print(f"\n" + "="*60)
+        print(f"メニュー:")
+        print(f"1. 新しいランキングを作成")
+        print(f"2. 利用可能な属性を確認")
+        print(f"3. 終了")
+        
+        try:
+            choice = input(f"\n選択してください (1-3): ").strip()
+            
+            if choice == '1':
+
+                filters = get_user_filters()
+                
+                if filters is None:
+                    print(f"フィルタ条件が設定されませんでした。")
+                    continue
+
+                result = get_drink_ranking_by_filters(filters)
+                
+                if result is None:
+                    continue
+                
+                ranking_df, filters = result
+
+                save_choice = input(f"\n結果をCSVファイルに保存しますか？ (y/n): ").strip().lower()
+                if save_choice in ['y', 'yes', 'はい']:
+                    filename = save_ranking_to_csv(ranking_df, filters)
+                
+            elif choice == '2':
+                get_available_attributes()
+                
+            elif choice == '3':
+                print(f"\n👋 ツールを終了します。お疲れ様でした！")
+                break
+                
+            else:
+                print(f"❌ 1から3の間で入力してください")
+                
+        except KeyboardInterrupt:
+            print(f"\n\n👋 処理を中断しました。ツールを終了します。")
+            break
+        except Exception as e:
+            print(f"❌ エラーが発生しました: {e}")
+
+interactive_drink_ranking()
+
+print(f"\n=== 属性別ランキングの汎用化が完了しました ===")
