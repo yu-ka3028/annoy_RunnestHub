@@ -191,116 +191,7 @@ for i, feature in enumerate(feature_names):
     if len(non_zero_scores) > 0:
         print(f"{feature}: 平均={non_zero_scores.mean():.4f}, 最大={non_zero_scores.max():.4f}, 非ゼロ数={len(non_zero_scores)}")
 
-print("\n" + "="*50)
-print("4-2. ベクトル化結果の保存と読み込み")
-print("="*50)
-
-save_dir = "saved_vectors"
-os.makedirs(save_dir, exist_ok=True)
-
-print(f"\n--- Step 1: pickleでベクトル化結果を保存 ---")
-
-vectorizer_pickle_path = os.path.join(save_dir, "vectorizer.pkl")
-ingredients_matrix_pickle_path = os.path.join(save_dir, "ingredients_matrix.pkl")
-feature_names_pickle_path = os.path.join(save_dir, "feature_names.pkl")
-
-with open(vectorizer_pickle_path, 'wb') as f:
-    pickle.dump(vectorizer, f)
-print(f"vectorizerを保存: {vectorizer_pickle_path}")
-
-with open(ingredients_matrix_pickle_path, 'wb') as f:
-    pickle.dump(ingredients_matrix, f)
-print(f"ingredients_matrixを保存: {ingredients_matrix_pickle_path}")
-
-with open(feature_names_pickle_path, 'wb') as f:
-    pickle.dump(feature_names, f)
-print(f"feature_namesを保存: {feature_names_pickle_path}")
-
-print(f"\n--- Step 2: numpyでベクトル化結果を保存 ---")
-
-ingredients_matrix_npy_path = os.path.join(save_dir, "ingredients_matrix.npy")
-feature_names_npy_path = os.path.join(save_dir, "feature_names.npy")
-
-np.save(ingredients_matrix_npy_path, ingredients_matrix.toarray())
-print(f"ingredients_matrixをnumpy形式で保存: {ingredients_matrix_npy_path}")
-
-np.save(feature_names_npy_path, feature_names)
-print(f"feature_namesをnumpy形式で保存: {feature_names_npy_path}")
-
-print(f"\n--- Step 3: 保存したファイルのサイズ確認 ---")
-import os.path
-
-files_to_check = [
-    vectorizer_pickle_path,
-    ingredients_matrix_pickle_path,
-    feature_names_pickle_path,
-    ingredients_matrix_npy_path,
-    feature_names_npy_path
-]
-
-for file_path in files_to_check:
-    if os.path.exists(file_path):
-        file_size = os.path.getsize(file_path)
-        print(f"{os.path.basename(file_path)}: {file_size:,} bytes ({file_size/1024:.2f} KB)")
-
-print(f"\n--- Step 4: pickleで保存したファイルから読み込み ---")
-
-with open(vectorizer_pickle_path, 'rb') as f:
-    loaded_vectorizer = pickle.load(f)
-print(f"vectorizerを読み込み完了")
-
-with open(ingredients_matrix_pickle_path, 'rb') as f:
-    loaded_ingredients_matrix = pickle.load(f)
-print(f"ingredients_matrixを読み込み完了")
-
-with open(feature_names_pickle_path, 'rb') as f:
-    loaded_feature_names = pickle.load(f)
-print(f"feature_namesを読み込み完了")
-
-print(f"\n読み込み結果の検証:")
-print(f"元のvectorizer型: {type(vectorizer)}")
-print(f"読み込みvectorizer型: {type(loaded_vectorizer)}")
-print(f"元のingredients_matrix shape: {ingredients_matrix.shape}")
-print(f"読み込みingredients_matrix shape: {loaded_ingredients_matrix.shape}")
-print(f"元のfeature_names shape: {feature_names.shape}")
-print(f"読み込みfeature_names shape: {loaded_feature_names.shape}")
-
-print(f"\nデータの一致確認:")
-print(f"ingredients_matrixが一致: {np.array_equal(ingredients_matrix.toarray(), loaded_ingredients_matrix.toarray())}")
-print(f"feature_namesが一致: {np.array_equal(feature_names, loaded_feature_names)}")
-
-print(f"\n--- Step 5: numpyで保存したファイルから読み込み ---")
-
-loaded_ingredients_matrix_npy = np.load(ingredients_matrix_npy_path)
-loaded_feature_names_npy = np.load(feature_names_npy_path, allow_pickle=True)
-
-print(f"numpy形式でingredients_matrixを読み込み完了")
-print(f"numpy形式でfeature_namesを読み込み完了")
-
-print(f"\nnumpy読み込み結果の検証:")
-print(f"読み込みingredients_matrix shape: {loaded_ingredients_matrix_npy.shape}")
-print(f"読み込みfeature_names shape: {loaded_feature_names_npy.shape}")
-
-print(f"\nnumpyデータの一致確認:")
-print(f"ingredients_matrixが一致: {np.array_equal(ingredients_matrix.toarray(), loaded_ingredients_matrix_npy)}")
-print(f"feature_namesが一致: {np.array_equal(feature_names, loaded_feature_names_npy)}")
-
-print(f"\n--- Step 6: 保存・読み込み機能のテスト ---")
-
-test_text = "コーヒー ミルク 砂糖"
-print(f"\nテスト用テキスト: '{test_text}'")
-
-test_vector = loaded_vectorizer.transform([test_text])
-print(f"テストベクトルのshape: {test_vector.shape}")
-print(f"テストベクトルの値: {test_vector.toarray()}")
-
-test_array = test_vector.toarray()[0]
-print(f"\nテストベクトルの詳細:")
-for i, (feature, value) in enumerate(zip(loaded_feature_names, test_array)):
-    if value > 0:
-        print(f"  {feature}: {value:.4f}")
-
-print(f"\n=== ベクトル化結果の保存と読み込みが完了しました ===")
+print(f"\n=== ベクトル化が完了しました ===")
 
 print("\n" + "="*50)
 print("5-1. annoyで似ている飲み物の近似K近傍検索")
@@ -594,44 +485,7 @@ def create_similarity_matrix():
 
 similarity_matrix = create_similarity_matrix()
 
-print(f"\n--- Step 3: インデックスの保存と読み込み ---")
-
-annoy_save_dir = "saved_annoy_indexes"
-os.makedirs(annoy_save_dir, exist_ok=True)
-
-cosine_annoy_path = os.path.join(annoy_save_dir, "cosine_annoy_index.ann")
-
-cosine_annoy_index.save(cosine_annoy_path)
-print(f"💾 コサイン類似度インデックスを保存: {cosine_annoy_path}")
-
-if os.path.exists(cosine_annoy_path):
-    file_size = os.path.getsize(cosine_annoy_path)
-    print(f"📁 ファイルサイズ: {file_size:,} bytes ({file_size/1024:.2f} KB)")
-
-print(f"\n🔄 保存したインデックスの読み込みテスト...")
-
-loaded_cosine_annoy = AnnoyIndex(vector_dimension, 'angular')
-loaded_cosine_annoy.load(cosine_annoy_path)
-print(f"✅ インデックスの読み込みが完了しました")
-
-test_drink = "lemon_sour"
-test_idx = drinks_df[drinks_df['name'] == test_drink].index[0]
-test_vector = ingredients_matrix[test_idx].toarray()[0]
-
-print(f"\n🧪 読み込みテスト: {test_drink}の検索")
-original_results = cosine_annoy_index.get_nns_by_vector(test_vector, 3, include_distances=True)
-loaded_results = loaded_cosine_annoy.get_nns_by_vector(test_vector, 3, include_distances=True)
-
-print(f"🔍 元のインデックス結果: {original_results[0]}")
-print(f"🔍 読み込みインデックス結果: {loaded_results[0]}")
-print(f"✅ 結果が一致: {original_results[0] == loaded_results[0]}")
-
-print(f"📊 距離値の比較:")
-for i in range(len(original_results[1])):
-    orig_dist = original_results[1][i]
-    loaded_dist = loaded_results[1][i]
-    diff = abs(orig_dist - loaded_dist)
-    print(f"   結果{i+1}: 元={orig_dist:.6f}, 読み込み={loaded_dist:.6f}, 差分={diff:.6f}")
+print(f"\n=== annoyインデックスの作成が完了しました ===")
 
 print(f"\n--- Step 4: 検索精度と速度の比較 ---")
 
@@ -1058,38 +912,6 @@ def get_drink_ranking_by_filters(filters):
     
     return drink_ranking, filters
 
-def save_ranking_to_csv(ranking_df, filters, filename=None):
-    """
-    ランキング結果をCSVファイルに保存する関数
-    """
-    if filename is None:
-
-        filter_str = "_".join([f"{k}_{v}" for k, v in filters.items()])
-        filename = f"drink_ranking_{filter_str}.csv"
-
-    ranking_with_rank = ranking_df.copy()
-    ranking_with_rank.insert(0, 'rank', range(1, len(ranking_with_rank) + 1))
-    
-
-    filter_description = ", ".join([f"{k}={v}" for k, v in filters.items()])
-
-    # 出力ディレクトリを作成（ホスト側からアクセス可能）
-    output_dir = "/app/output"
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # フルパスでファイルを保存
-    full_path = os.path.join(output_dir, filename)
-    ranking_with_rank.to_csv(full_path, index=False, encoding='utf-8')
-    
-    print(f"\n💾 ランキング結果をCSVファイルに保存しました:")
-    print(f"   ファイル名: {filename}")
-    print(f"   保存パス: {full_path}")
-    print(f"   フィルタ条件: {filter_description}")
-    print(f"   保存行数: {len(ranking_with_rank)}行")
-    print(f"   📁 ホスト側では './output/{filename}' でアクセス可能です")
-    
-    return filename
-
 def interactive_drink_ranking():
     """
     対話式で飲み物ランキングを作成するメイン関数
@@ -1121,10 +943,6 @@ def interactive_drink_ranking():
                     continue
                 
                 ranking_df, filters = result
-
-                save_choice = input(f"\n結果をCSVファイルに保存しますか？ (y/n): ").strip().lower()
-                if save_choice in ['y', 'yes', 'はい']:
-                    filename = save_ranking_to_csv(ranking_df, filters)
                 
             elif choice == '2':
                 get_available_attributes()
@@ -1145,3 +963,265 @@ def interactive_drink_ranking():
 interactive_drink_ranking()
 
 print(f"\n=== 属性別ランキングの汎用化が完了しました ===")
+
+print("\n" + "="*50)
+print("6-3. 統計情報の表示（SP:1）")
+print("="*50)
+
+def display_user_attribute_statistics():
+    """
+    ユーザー属性の分布統計を表示する関数
+    """
+    print(f"\n📊 ユーザー属性の分布統計")
+    print("=" * 60)
+    
+    print(f"\n🔢 基本統計:")
+    print(f"   総ユーザー数: {len(users_df)}人")
+    print(f"   平均年齢: {users_df['age'].mean():.1f}歳")
+    print(f"   年齢の範囲: {users_df['age'].min()}歳 ～ {users_df['age'].max()}歳")
+    print(f"   平均コーディング時間: {users_df['coding_hours_per_day'].mean():.1f}時間/日")
+    
+    print(f"\n👥 性別分布:")
+    gender_counts = users_df['gender'].value_counts()
+    for gender, count in gender_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {gender}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🎂 年齢分布:")
+    age_stats = users_df['age'].describe()
+    print(f"   平均: {age_stats['mean']:.1f}歳")
+    print(f"   中央値: {age_stats['50%']:.1f}歳")
+    print(f"   標準偏差: {age_stats['std']:.1f}歳")
+    print(f"   最小値: {age_stats['min']:.0f}歳")
+    print(f"   最大値: {age_stats['max']:.0f}歳")
+    print(f"   25%分位: {age_stats['25%']:.1f}歳")
+    print(f"   75%分位: {age_stats['75%']:.1f}歳")
+    
+    print(f"\n💻 好きな言語分布:")
+    lang_counts = users_df['favorite_lang'].value_counts()
+    for lang, count in lang_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {lang}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🖥️ OS分布:")
+    os_counts = users_df['os'].value_counts()
+    for os, count in os_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {os}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n✏️ エディタ分布:")
+    editor_counts = users_df['editor'].value_counts()
+    for editor, count in editor_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {editor}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🌙 夜型分布:")
+    night_owl_counts = users_df['night_owl'].value_counts()
+    for night_owl, count in night_owl_counts.items():
+        percentage = (count / len(users_df)) * 100
+        type_name = "夜型" if night_owl == 1 else "朝型"
+        print(f"   {type_name}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🧠 性格タイプ分布:")
+    personality_counts = users_df['extroversion_tag'].value_counts()
+    for personality, count in personality_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {personality}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🤖 AIアシスタント使用分布:")
+    ai_counts = users_df['ai_assistant'].value_counts()
+    for ai, count in ai_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {ai}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n⌨️ Vim使用分布:")
+    vim_counts = users_df['uses_vim'].value_counts()
+    for vim, count in vim_counts.items():
+        percentage = (count / len(users_df)) * 100
+        type_name = "Vim使用" if vim == 1 else "Vim未使用"
+        print(f"   {type_name}: {count}人 ({percentage:.1f}%)")
+    
+    print(f"\n🍺 お気に入りアルコール分布:")
+    alcohol_counts = users_df['favorite_alcohol'].value_counts()
+    for alcohol, count in alcohol_counts.items():
+        percentage = (count / len(users_df)) * 100
+        print(f"   {alcohol}: {count}人 ({percentage:.1f}%)")
+    
+    return {
+        'total_users': len(users_df),
+        'age_stats': age_stats,
+        'gender_distribution': gender_counts,
+        'language_distribution': lang_counts,
+        'os_distribution': os_counts,
+        'editor_distribution': editor_counts,
+        'night_owl_distribution': night_owl_counts,
+        'personality_distribution': personality_counts,
+        'ai_assistant_distribution': ai_counts,
+        'vim_usage_distribution': vim_counts,
+        'favorite_alcohol_distribution': alcohol_counts
+    }
+
+def display_drink_category_statistics():
+    """
+    飲み物カテゴリの分布統計を表示する関数
+    """
+    print(f"\n🍹 飲み物カテゴリの分布統計")
+    print("=" * 60)
+    
+    print(f"\n🔢 基本統計:")
+    print(f"   総飲み物数: {len(drinks_df)}種類")
+    print(f"   平均アルコール度数: {drinks_df['abv'].mean():.1f}%")
+    print(f"   アルコール度数の範囲: {drinks_df['abv'].min()}% ～ {drinks_df['abv'].max()}%")
+
+    print(f"\n📂 カテゴリ分布:")
+    category_counts = drinks_df['category'].value_counts()
+    for category, count in category_counts.items():
+        percentage = (count / len(drinks_df)) * 100
+        print(f"   {category}: {count}種類 ({percentage:.1f}%)")
+
+    print(f"\n🍺 アルコール度数分布:")
+    abv_stats = drinks_df['abv'].describe()
+    print(f"   平均: {abv_stats['mean']:.1f}%")
+    print(f"   中央値: {abv_stats['50%']:.1f}%")
+    print(f"   標準偏差: {abv_stats['std']:.1f}%")
+    print(f"   最小値: {abv_stats['min']:.0f}%")
+    print(f"   最大値: {abv_stats['max']:.0f}%")
+
+    print(f"\n🍻 アルコール有無分布:")
+    alcohol_drinks = len(drinks_df[drinks_df['abv'] > 0])
+    non_alcohol_drinks = len(drinks_df[drinks_df['abv'] == 0])
+    total_drinks = len(drinks_df)
+    
+    print(f"   アルコール系: {alcohol_drinks}種類 ({(alcohol_drinks/total_drinks)*100:.1f}%)")
+    print(f"   ノンアルコール系: {non_alcohol_drinks}種類 ({(non_alcohol_drinks/total_drinks)*100:.1f}%)")
+
+    print(f"\n🥤 材料数分布:")
+    drinks_df['ingredient_count'] = drinks_df['ingredients'].str.split('|').str.len()
+    ingredient_stats = drinks_df['ingredient_count'].describe()
+    print(f"   平均材料数: {ingredient_stats['mean']:.1f}個")
+    print(f"   中央値: {ingredient_stats['50%']:.1f}個")
+    print(f"   標準偏差: {ingredient_stats['std']:.1f}個")
+    print(f"   最小値: {ingredient_stats['min']:.0f}個")
+    print(f"   最大値: {ingredient_stats['max']:.0f}個")
+
+    print(f"\n🥄 材料の頻出度（上位10位）:")
+    all_ingredients = []
+    for ingredients_str in drinks_df['ingredients']:
+        ingredients = ingredients_str.split('|')
+        all_ingredients.extend(ingredients)
+    
+    from collections import Counter
+    ingredient_counts = Counter(all_ingredients)
+    for i, (ingredient, count) in enumerate(ingredient_counts.most_common(10), 1):
+        percentage = (count / len(drinks_df)) * 100
+        print(f"   {i:2d}. {ingredient}: {count}回使用 ({percentage:.1f}%)")
+    
+    return {
+        'total_drinks': len(drinks_df),
+        'abv_stats': abv_stats,
+        'category_distribution': category_counts,
+        'alcohol_vs_non_alcohol': {'alcohol': alcohol_drinks, 'non_alcohol': non_alcohol_drinks},
+        'ingredient_count_stats': ingredient_stats,
+        'top_ingredients': ingredient_counts.most_common(10)
+    }
+
+def display_interaction_statistics():
+    """
+    インタラクション（飲み物選択）の統計を表示する関数
+    """
+    print(f"\n🍻 インタラクション統計")
+    print("=" * 60)
+
+    print(f"\n🔢 基本統計:")
+    print(f"   総インタラクション数: {len(interactions_df)}回")
+    print(f"   平均ユーザーあたりの選択回数: {len(interactions_df) / len(users_df):.1f}回")
+    print(f"   平均飲み物あたりの選択回数: {len(interactions_df) / len(drinks_df):.1f}回")
+
+    print(f"\n👤 ユーザー別選択回数:")
+    user_interaction_counts = interactions_df['user_id'].value_counts()
+    user_stats = user_interaction_counts.describe()
+    print(f"   平均選択回数: {user_stats['mean']:.1f}回")
+    print(f"   中央値: {user_stats['50%']:.1f}回")
+    print(f"   標準偏差: {user_stats['std']:.1f}回")
+    print(f"   最小値: {user_stats['min']:.0f}回")
+    print(f"   最大値: {user_stats['max']:.0f}回")
+
+    print(f"\n🍹 飲み物別選択回数:")
+    drink_interaction_counts = interactions_df['item_id'].value_counts()
+    drink_stats = drink_interaction_counts.describe()
+    print(f"   平均選択回数: {drink_stats['mean']:.1f}回")
+    print(f"   中央値: {drink_stats['50%']:.1f}回")
+    print(f"   標準偏差: {drink_stats['std']:.1f}回")
+    print(f"   最小値: {drink_stats['min']:.0f}回")
+    print(f"   最大値: {drink_stats['max']:.0f}回")
+
+    print(f"\n🏆 人気飲み物トップ5:")
+    for i, (drink_id, count) in enumerate(drink_interaction_counts.head(5).items(), 1):
+        drink_name = drinks_df[drinks_df['drink_id'] == drink_id]['name'].iloc[0]
+        percentage = (count / len(interactions_df)) * 100
+        print(f"   {i}. {drink_name}: {count}回選択 ({percentage:.1f}%)")
+    
+    return {
+        'total_interactions': len(interactions_df),
+        'user_interaction_stats': user_stats,
+        'drink_interaction_stats': drink_stats,
+        'top_drinks': drink_interaction_counts.head(5)
+    }
+
+
+def display_comprehensive_statistics():
+    """
+    包括的な統計情報を表示するメイン関数
+    """
+    print(f"\n🎯 包括的統計情報の表示")
+    print("=" * 80)
+
+    user_stats = display_user_attribute_statistics()
+    drink_stats = display_drink_category_statistics()
+    interaction_stats = display_interaction_statistics()
+
+    print(f"\n🔍 データ品質チェック")
+    print("=" * 60)
+
+    print(f"\n❓ 欠損値チェック:")
+    for df_name, df in [('users', users_df), ('drinks', drinks_df), ('interactions', interactions_df)]:
+        missing_count = df.isnull().sum().sum()
+        if missing_count > 0:
+            print(f"   {df_name}: {missing_count}個の欠損値あり")
+        else:
+            print(f"   {df_name}: 欠損値なし ✅")
+
+    print(f"\n🔗 データ整合性チェック:")
+
+    user_ids_in_interactions = set(interactions_df['user_id'].unique())
+    user_ids_in_users = set(users_df['user_id'].unique())
+    missing_users = user_ids_in_interactions - user_ids_in_users
+    if missing_users:
+        print(f"   ❌ インタラクションに存在するがユーザーテーブルにないユーザーID: {missing_users}")
+    else:
+        print(f"   ✅ ユーザーIDの整合性: 問題なし")
+
+    drink_ids_in_interactions = set(interactions_df['item_id'].unique())
+    drink_ids_in_drinks = set(drinks_df['drink_id'].unique())
+    missing_drinks = drink_ids_in_interactions - drink_ids_in_drinks
+    if missing_drinks:
+        print(f"   ❌ インタラクションに存在するが飲み物テーブルにない飲み物ID: {missing_drinks}")
+    else:
+        print(f"   ✅ 飲み物IDの整合性: 問題なし")
+
+    print(f"\n📋 データ分布の要約")
+    print("=" * 60)
+    print(f"   ユーザー数: {len(users_df)}人")
+    print(f"   飲み物数: {len(drinks_df)}種類")
+    print(f"   インタラクション数: {len(interactions_df)}回")
+    print(f"   データ密度: {len(interactions_df) / (len(users_df) * len(drinks_df)) * 100:.1f}%")
+    
+    return {
+        'user_stats': user_stats,
+        'drink_stats': drink_stats,
+        'interaction_stats': interaction_stats
+    }
+
+comprehensive_stats = display_comprehensive_statistics()
+
+print(f"\n=== 統計情報の表示が完了しました ===")
