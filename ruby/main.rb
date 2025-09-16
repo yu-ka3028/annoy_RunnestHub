@@ -17,8 +17,14 @@ class RunnestHubAnalyzer
     
     begin
       data = []
-      CSV.foreach(file_path, headers: true) do |row|
-        data << row.to_h
+      CSV.foreach(file_path, headers: true, skip_lines: /^#/) do |row|
+        row_data = row.to_h
+
+        if row_data['ingredients']
+          row_data['ingredients'] = row_data['ingredients'].split('|')
+        end
+        
+        data << row_data
       end
       @logger.info("CSV読み込み完了: #{data.length}行のデータを読み込みました")
       data
@@ -93,12 +99,44 @@ class RunnestHubAnalyzer
     }
   end
 
+  def join_data(users_data, drinks_data, interactions_data)
+    @logger.info("データの結合処理を開始")
+
+    users_hash = users_data.each_with_object({}) do |user, hash|
+      user_id = user['user_id']
+      hash[user_id] = user
+      hash[user_id.to_i] = user
+    end
+
+    drinks_hash = drinks_data.each_with_object({}) do |drink, hash|
+      drink_id = drink['drink_id']
+      hash[drink_id] = drink
+      hash[drink_id.to_i] = drink
+    end
+
+    joined_data = interactions_data.map do |interaction|
+      user_id = interaction['user_id']
+      drink_id = interaction['item_id']
+      
+      joined_record = interaction.dup
+      joined_record['user_info'] = users_hash[user_id] || users_hash[user_id.to_i] || {}
+      joined_record['drink_info'] = drinks_hash[drink_id] || drinks_hash[drink_id.to_i] || {}
+      
+      joined_record
+    end
+    
+    @logger.info("データ結合完了: #{joined_data.length}件の結合データを生成しました")
+    joined_data
+  end
+
   def run_analysis
     @logger.info("=== RunnestHub データ分析開始 ===")
 
     users_data = load_csv_data('data/users.csv')
     drinks_data = load_csv_data('data/drinks.csv')
     interactions_data = load_csv_data('data/interactions.csv')
+
+    joined_data = join_data(users_data, drinks_data, interactions_data)
 
     user_analysis = analyze_users(users_data)
     drink_analysis = analyze_drinks(drinks_data)
@@ -108,6 +146,14 @@ class RunnestHubAnalyzer
     @logger.info("ユーザー分析: #{user_analysis}")
     @logger.info("ドリンク分析: #{drink_analysis}")
     @logger.info("インタラクション分析: #{interaction_analysis}")
+
+    @logger.info("=== 結合データサンプル ===")
+    joined_data.first(3).each_with_index do |record, index|
+      @logger.info("結合データ #{index + 1}:")
+      @logger.info("  ユーザー情報: #{record['user_info']}")
+      @logger.info("  ドリンク情報: #{record['drink_info']}")
+      @logger.info("  インタラクション: #{record}")
+    end
     
     @logger.info("=== 分析完了 ===")
   end
