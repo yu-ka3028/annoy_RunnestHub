@@ -107,7 +107,8 @@ class RunnestHubAnalyzer
 
     drink_texts = drinks_data.map do |drink|
       ingredients = drink['ingredients'] || []
-      text = "#{drink['name']} #{ingredients.join(' ')}"
+
+      text = ingredients.join(' ')
       {
         drink_id: drink['drink_id'],
         name: drink['name'],
@@ -201,6 +202,105 @@ class RunnestHubAnalyzer
     dot_product / (magnitude_a * magnitude_b)
   end
 
+  def build_annoy_index(drink_vectors, dimensions)
+    @logger.info("Annoyインデックスの構築を開始")
+    
+    # Annoyインデックスを作成（コサイン類似度用）
+    index = Annoy::AnnoyIndexAngular.new(dimensions)
+    
+    drink_vectors.each_with_index do |(drink_id, data), idx|
+      vector = data[:vector]
+      normalized_vector = normalize_vector(vector)
+      index.add_item(idx, normalized_vector)
+    end
+    
+
+    index.build(10, -1)
+    
+    @logger.info("Annoyインデックス構築完了: #{drink_vectors.length}個のベクトルをインデックス化")
+    
+    index
+  end
+
+  def normalize_vector(vector)
+    magnitude = Math.sqrt(vector.map { |x| x**2 }.sum)
+    return vector.map { |x| 0.0 } if magnitude == 0
+    
+    vector.map { |x| x / magnitude }
+  end
+
+  def find_annoy_neighbors(index, drink_vectors, target_drink_id, k = 5)
+    @logger.info("Annoy近似K近傍検索を開始: ドリンクID #{target_drink_id}")
+    
+    return [] unless drink_vectors[target_drink_id]
+    
+    target_vector = normalize_vector(drink_vectors[target_drink_id][:vector])
+    neighbors = index.get_nns_by_vector(target_vector, k + 1, -1, true)
+    neighbor_indices = neighbors[0]
+    distances = neighbors[1]
+    
+    results = []
+    drink_ids = drink_vectors.keys
+    
+    neighbor_indices.each_with_index do |neighbor_idx, i|
+
+      next if drink_ids[neighbor_idx] == target_drink_id
+      
+      drink_id = drink_ids[neighbor_idx]
+      data = drink_vectors[drink_id]
+      
+      similarity = 1.0 - distances[i]
+      
+      results << {
+        drink_id: drink_id,
+        name: data[:name],
+        similarity: similarity,
+        distance: distances[i]
+      }
+    end
+    
+    @logger.info("Annoy検索完了: #{results.length}個の近傍を発見")
+    results
+  end
+
+  def compare_search_methods(drink_vectors, target_drink_id, k = 5)
+    @logger.info("=== 検索手法の比較 ===")
+    
+    linear_results = find_similar_drinks(drink_vectors, target_drink_id, k)
+    
+    dimensions = drink_vectors.values.first[:vector].length
+    annoy_index = build_annoy_index(drink_vectors, dimensions)
+    annoy_results = find_annoy_neighbors(annoy_index, drink_vectors, target_drink_id, k)
+    
+    @logger.info("=== 検索結果比較 ===")
+    @logger.info("ターゲットドリンク: #{drink_vectors[target_drink_id][:name]}")
+    
+    @logger.info("--- 線形検索結果 ---")
+    linear_results.each_with_index do |result, i|
+      @logger.info("#{i + 1}. #{result[:name]} (類似度: #{result[:similarity].round(4)})")
+    end
+    
+    @logger.info("--- Annoy近似検索結果 ---")
+    annoy_results.each_with_index do |result, i|
+      @logger.info("#{i + 1}. #{result[:name]} (類似度: #{result[:similarity].round(4)}, 距離: #{result[:distance].round(4)})")
+    end
+    
+    linear_names = linear_results.map { |r| r[:name] }
+    annoy_names = annoy_results.map { |r| r[:name] }
+    
+    common_results = linear_names & annoy_names
+    @logger.info("--- 比較結果 ---")
+    @logger.info("共通結果数: #{common_results.length}/#{k}")
+    @logger.info("共通結果: #{common_results}")
+    
+    {
+      linear_search: linear_results,
+      annoy_search: annoy_results,
+      common_results: common_results,
+      common_count: common_results.length
+    }
+  end
+
   def join_data(users_data, drinks_data, interactions_data)
     @logger.info("データの結合処理を開始")
 
@@ -273,6 +373,19 @@ class RunnestHubAnalyzer
       @logger.info("ドリンクID #{first_drink_id} の類似ドリンク:")
       similar_drinks.each do |similar|
         @logger.info("  - #{similar[:name]} (類似度: #{similar[:similarity].round(4)})")
+      end
+    end
+
+    @logger.info("=== 近傍検索の比較デモ ===")
+    if vectorization_result[:drink_vectors] && !vectorization_result[:drink_vectors].empty?
+
+      test_drinks = vectorization_result[:drink_vectors].keys.first(3)
+      
+      test_drinks.each do |drink_id|
+        @logger.info("\n--- ドリンクID #{drink_id} での比較 ---")
+        comparison_result = compare_search_methods(vectorization_result[:drink_vectors], drink_id, 3)
+        
+        @logger.info("検索精度: #{comparison_result[:common_count]}/3 件が一致")
       end
     end
 
