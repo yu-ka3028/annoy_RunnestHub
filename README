@@ -4,5 +4,7 @@ docker build -f Dockerfile -t python-app ..
 docker run -it python-app python main.py
 docker run --rm -it -v $(pwd)/output:/app/output python-app
 
-docker build -t ruby-app .
+# Ruby
+cd ruby
+docker build -f Dockerfile -t ruby-app ..
 docker run -it ruby-app ruby main.rb
