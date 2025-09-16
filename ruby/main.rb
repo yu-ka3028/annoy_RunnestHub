@@ -96,9 +96,9 @@ class RunnestHubAnalyzer
   def run_analysis
     @logger.info("=== RunnestHub データ分析開始 ===")
 
-    users_data = load_csv_data('../data/users.csv')
-    drinks_data = load_csv_data('../data/drinks.csv')
-    interactions_data = load_csv_data('../data/interactions.csv')
+    users_data = load_csv_data('data/users.csv')
+    drinks_data = load_csv_data('data/drinks.csv')
+    interactions_data = load_csv_data('data/interactions.csv')
 
     user_analysis = analyze_users(users_data)
     drink_analysis = analyze_drinks(drinks_data)

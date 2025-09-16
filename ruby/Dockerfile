@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY Gemfile .
+COPY ruby/Gemfile .
 RUN bundle install
-COPY . /app
+COPY ruby/ /app
+COPY data /app/data
 CMD ["ruby", "main.rb"]
