@@ -1,0 +1,24 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    annoy (0.5.6)
+      highline (>= 1.5.0)
+    highline (3.1.2)
+      reline
+    io-console (0.8.1)
+    reline (0.6.2)
+      io-console (~> 0.5)
+    tf-idf-similarity (0.3.0)
+      unicode_utils (~> 1.4)
+    unicode_utils (1.4.0)
+
+PLATFORMS
+  arm64-darwin-23
+  ruby
+
+DEPENDENCIES
+  annoy
+  tf-idf-similarity
+
+BUNDLED WITH
+   2.5.23
