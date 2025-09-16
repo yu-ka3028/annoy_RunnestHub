@@ -331,6 +331,257 @@ class RunnestHubAnalyzer
     joined_data
   end
 
+  def analyze_vim_drinker_ranking(users_data, interactions_data, drinks_data)
+    @logger.info("Vim使いがよく飲むお酒ランキングの分析を開始")
+    
+    vim_users = users_data.select { |user| user['uses_vim'] == '1' }
+    vim_user_ids = vim_users.map { |user| user['user_id'] }
+    
+    @logger.info("Vim使いのユーザー数: #{vim_user_ids.length}")
+    @logger.info("Vim使いのユーザーID: #{vim_user_ids}")
+    
+    vim_interactions = interactions_data.select do |interaction|
+      vim_user_ids.include?(interaction['user_id'])
+    end
+    
+    @logger.info("Vim使いのインタラクション数: #{vim_interactions.length}")
+    
+    drink_counts = vim_interactions.group_by { |interaction| interaction['item_id'] }
+                                  .transform_values(&:length)
+    
+    drinks_hash = drinks_data.each_with_object({}) do |drink, hash|
+      drink_id = drink['drink_id']
+      hash[drink_id] = drink
+      hash[drink_id.to_i] = drink
+    end
+    
+    ranking = drink_counts.map do |drink_id, count|
+      drink_info = drinks_hash[drink_id] || drinks_hash[drink_id.to_i] || {}
+      {
+        drink_id: drink_id,
+        name: drink_info['name'] || "Unknown",
+        category: drink_info['category'] || "Unknown",
+        count: count
+      }
+    end
+    
+    ranking.sort_by { |item| -item[:count] }
+  end
+
+  def analyze_attribute_ranking(users_data, interactions_data, drinks_data, filters = {})
+    @logger.info("属性別ランキングの分析を開始")
+    @logger.info("フィルター条件: #{filters}")
+    
+    # フィルター条件に基づいてユーザーを選択
+    filtered_users = users_data.select do |user|
+      filters.all? do |attribute, value|
+        if value.is_a?(Array)
+          value.include?(user[attribute])
+        else
+          user[attribute] == value
+        end
+      end
+    end
+    
+    filtered_user_ids = filtered_users.map { |user| user['user_id'] }
+    
+    @logger.info("フィルター後のユーザー数: #{filtered_user_ids.length}")
+    @logger.info("フィルター後のユーザーID: #{filtered_user_ids}")
+    
+    # フィルターされたユーザーのインタラクションを取得
+    filtered_interactions = interactions_data.select do |interaction|
+      filtered_user_ids.include?(interaction['user_id'])
+    end
+    
+    @logger.info("フィルター後のインタラクション数: #{filtered_interactions.length}")
+    
+    # ドリンクIDごとのカウントを集計
+    drink_counts = filtered_interactions.group_by { |interaction| interaction['item_id'] }
+                                      .transform_values(&:length)
+    
+    # ドリンク情報と結合してランキングを作成
+    drinks_hash = drinks_data.each_with_object({}) do |drink, hash|
+      drink_id = drink['drink_id']
+      hash[drink_id] = drink
+      hash[drink_id.to_i] = drink
+    end
+    
+    ranking = drink_counts.map do |drink_id, count|
+      drink_info = drinks_hash[drink_id] || drinks_hash[drink_id.to_i] || {}
+      {
+        drink_id: drink_id,
+        name: drink_info['name'] || "Unknown",
+        category: drink_info['category'] || "Unknown",
+        count: count
+      }
+    end
+    
+    ranking.sort_by { |item| -item[:count] }
+  end
+
+  def analyze_multi_attribute_ranking(users_data, interactions_data, drinks_data, attribute_combinations)
+    @logger.info("複数属性組み合わせランキングの分析を開始")
+    
+    results = {}
+    
+    attribute_combinations.each do |combination_name, filters|
+      @logger.info("=== #{combination_name} ===")
+      ranking = analyze_attribute_ranking(users_data, interactions_data, drinks_data, filters)
+      results[combination_name] = ranking
+    end
+    
+    results
+  end
+
+  def display_ranking(title, ranking)
+    @logger.info("--- #{title}ランキング ---")
+    
+    if ranking.empty?
+      @logger.info("#{title}の飲み物データが見つかりませんでした")
+    else
+      @logger.info("ランキング結果:")
+      ranking.each_with_index do |item, index|
+        @logger.info("#{index + 1}. #{item[:name]} (#{item[:category]}) - #{item[:count]}回")
+      end
+    end
+    @logger.info("")
+  end
+
+  def display_attribute_distribution(users_data)
+    @logger.info("=== ユーザー属性分布 ===")
+    
+    gender_dist = users_data.group_by { |user| user['gender'] }
+                            .transform_values(&:length)
+    @logger.info("性別分布:")
+    gender_dist.each do |gender, count|
+      percentage = (count.to_f / users_data.length * 100).round(1)
+      @logger.info("  #{gender}: #{count}人 (#{percentage}%)")
+    end
+    
+    lang_dist = users_data.group_by { |user| user['favorite_lang'] }
+                          .transform_values(&:length)
+    @logger.info("プログラミング言語分布:")
+    lang_dist.sort_by { |_, count| -count }.each do |lang, count|
+      percentage = (count.to_f / users_data.length * 100).round(1)
+      @logger.info("  #{lang}: #{count}人 (#{percentage}%)")
+    end
+    
+    os_dist = users_data.group_by { |user| user['os'] }
+                        .transform_values(&:length)
+    @logger.info("OS分布:")
+    os_dist.sort_by { |_, count| -count }.each do |os, count|
+      percentage = (count.to_f / users_data.length * 100).round(1)
+      @logger.info("  #{os}: #{count}人 (#{percentage}%)")
+    end
+    
+    editor_dist = users_data.group_by { |user| user['editor'] }
+                            .transform_values(&:length)
+    @logger.info("エディタ分布:")
+    editor_dist.sort_by { |_, count| -count }.each do |editor, count|
+      percentage = (count.to_f / users_data.length * 100).round(1)
+      @logger.info("  #{editor}: #{count}人 (#{percentage}%)")
+    end
+    
+    vim_users = users_data.count { |user| user['uses_vim'] == '1' }
+    vim_percentage = (vim_users.to_f / users_data.length * 100).round(1)
+    @logger.info("Vim使用率: #{vim_users}/#{users_data.length}人 (#{vim_percentage}%)")
+    
+    night_owl_users = users_data.count { |user| user['night_owl'] == '1' }
+    night_owl_percentage = (night_owl_users.to_f / users_data.length * 100).round(1)
+    @logger.info("夜型率: #{night_owl_users}/#{users_data.length}人 (#{night_owl_percentage}%)")
+    
+    extroversion_dist = users_data.group_by { |user| user['extroversion_tag'] }
+                                  .transform_values(&:length)
+    @logger.info("外向性分布:")
+    extroversion_dist.sort_by { |_, count| -count }.each do |type, count|
+      percentage = (count.to_f / users_data.length * 100).round(1)
+      @logger.info("  #{type}: #{count}人 (#{percentage}%)")
+    end
+    
+    @logger.info("")
+  end
+
+  def display_drink_category_distribution(drinks_data)
+    @logger.info("=== 飲み物カテゴリ分布 ===")
+    
+    category_dist = drinks_data.group_by { |drink| drink['category'] }
+                               .transform_values(&:length)
+    
+    category_dist.sort_by { |_, count| -count }.each do |category, count|
+      percentage = (count.to_f / drinks_data.length * 100).round(1)
+      @logger.info("#{category}: #{count}種類 (#{percentage}%)")
+    end
+    
+    @logger.info("")
+  end
+
+  def calculate_basic_statistics(users_data, drinks_data, interactions_data)
+    @logger.info("=== 基本統計量 ===")
+    
+    ages = users_data.map { |user| user['age'].to_i }.compact
+    if ages.any?
+      ages_sorted = ages.sort
+      @logger.info("年齢統計:")
+      @logger.info("  平均: #{ages.sum.to_f / ages.length}歳")
+      @logger.info("  中央値: #{ages_sorted[ages_sorted.length / 2]}歳")
+      @logger.info("  最小: #{ages.min}歳")
+      @logger.info("  最大: #{ages.max}歳")
+      @logger.info("  標準偏差: #{calculate_standard_deviation(ages)}")
+    end
+    
+    coding_hours = users_data.map { |user| user['coding_hours_per_day'].to_i }.compact
+    if coding_hours.any?
+      coding_hours_sorted = coding_hours.sort
+      @logger.info("1日のコーディング時間統計:")
+      @logger.info("  平均: #{coding_hours.sum.to_f / coding_hours.length}時間")
+      @logger.info("  中央値: #{coding_hours_sorted[coding_hours_sorted.length / 2]}時間")
+      @logger.info("  最小: #{coding_hours.min}時間")
+      @logger.info("  最大: #{coding_hours.max}時間")
+    end
+
+    prices = drinks_data.map { |drink| drink['price'].to_f }.compact
+    if prices.any?
+      prices_sorted = prices.sort
+      @logger.info("ドリンク価格統計:")
+      @logger.info("  平均: #{prices.sum / prices.length}円")
+      @logger.info("  中央値: #{prices_sorted[prices_sorted.length / 2]}円")
+      @logger.info("  最小: #{prices.min}円")
+      @logger.info("  最大: #{prices.max}円")
+    end
+    
+    abvs = drinks_data.map { |drink| drink['abv'].to_f }.compact
+    if abvs.any?
+      abvs_sorted = abvs.sort
+      @logger.info("アルコール度数統計:")
+      @logger.info("  平均: #{abvs.sum / abvs.length}%")
+      @logger.info("  中央値: #{abvs_sorted[abvs_sorted.length / 2]}%")
+      @logger.info("  最小: #{abvs.min}%")
+      @logger.info("  最大: #{abvs.max}%")
+    end
+    
+    user_interaction_counts = interactions_data.group_by { |i| i['user_id'] }
+                                              .transform_values(&:length)
+                                              .values
+    if user_interaction_counts.any?
+      interaction_counts_sorted = user_interaction_counts.sort
+      @logger.info("ユーザーあたりのインタラクション数統計:")
+      @logger.info("  平均: #{user_interaction_counts.sum.to_f / user_interaction_counts.length}回")
+      @logger.info("  中央値: #{interaction_counts_sorted[interaction_counts_sorted.length / 2]}回")
+      @logger.info("  最小: #{user_interaction_counts.min}回")
+      @logger.info("  最大: #{user_interaction_counts.max}回")
+    end
+    
+    @logger.info("")
+  end
+
+  def calculate_standard_deviation(values)
+    return 0.0 if values.empty?
+    
+    mean = values.sum.to_f / values.length
+    variance = values.map { |v| (v - mean) ** 2 }.sum / values.length
+    Math.sqrt(variance).round(2)
+  end
+
   def run_analysis
     @logger.info("=== RunnestHub データ分析開始 ===")
 
@@ -350,6 +601,11 @@ class RunnestHubAnalyzer
     @logger.info("ユーザー分析: #{user_analysis}")
     @logger.info("ドリンク分析: #{drink_analysis}")
     @logger.info("インタラクション分析: #{interaction_analysis}")
+
+    # 統計情報の表示
+    display_attribute_distribution(users_data)
+    display_drink_category_distribution(drinks_data)
+    calculate_basic_statistics(users_data, drinks_data, interactions_data)
 
     @logger.info("=== ベクトル化結果 ===")
     if vectorization_result[:drink_vectors]
@@ -395,6 +651,38 @@ class RunnestHubAnalyzer
       @logger.info("  ユーザー情報: #{record['user_info']}")
       @logger.info("  ドリンク情報: #{record['drink_info']}")
       @logger.info("  インタラクション: #{record}")
+    end
+
+    @logger.info("=== Vim使いがよく飲むお酒ランキング ===")
+    vim_ranking = analyze_vim_drinker_ranking(users_data, interactions_data, drinks_data)
+    display_ranking("Vim使い", vim_ranking)
+
+    @logger.info("=== 属性別ランキング分析 ===")
+    
+    single_attribute_examples = [
+      { name: "男性がよく飲むお酒", filters: { 'gender' => 'male' } },
+      { name: "女性がよく飲むお酒", filters: { 'gender' => 'female' } },
+      { name: "Python使いがよく飲むお酒", filters: { 'favorite_lang' => 'Python' } },
+      { name: "Ruby使いがよく飲むお酒", filters: { 'favorite_lang' => 'Ruby' } },
+      { name: "macユーザーがよく飲むお酒", filters: { 'os' => 'mac' } },
+      { name: "夜型の人がよく飲むお酒", filters: { 'night_owl' => '1' } }
+    ]
+    
+    single_attribute_examples.each do |example|
+      ranking = analyze_attribute_ranking(users_data, interactions_data, drinks_data, example[:filters])
+      display_ranking(example[:name], ranking)
+    end
+    
+    multi_attribute_examples = {
+      "男性のVim使い" => { 'gender' => 'male', 'uses_vim' => '1' },
+      "女性のPython使い" => { 'gender' => 'female', 'favorite_lang' => 'Python' },
+      "macの夜型ユーザー" => { 'os' => 'mac', 'night_owl' => '1' },
+      "内向的なVim使い" => { 'extroversion_tag' => 'introvert', 'uses_vim' => '1' }
+    }
+    
+    multi_results = analyze_multi_attribute_ranking(users_data, interactions_data, drinks_data, multi_attribute_examples)
+    multi_results.each do |combination_name, ranking|
+      display_ranking(combination_name, ranking)
     end
     
     @logger.info("=== 分析完了 ===")
