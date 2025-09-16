@@ -62,7 +62,7 @@ class RunnestHubAnalyzer
     return {} if drinks_data.empty?
 
     category_stats = drinks_data.group_by { |drink| drink['category'] }
-                               .transform_values(&:length)
+                                .transform_values(&:length)
 
     prices = drinks_data.map { |drink| drink['price'].to_f }.compact
     price_stats = {
@@ -85,10 +85,10 @@ class RunnestHubAnalyzer
     return {} if interactions_data.empty?
 
     user_interactions = interactions_data.group_by { |interaction| interaction['user_id'] }
-                                       .transform_values(&:length)
+                                        .transform_values(&:length)
 
     drink_interactions = interactions_data.group_by { |interaction| interaction['drink_id'] }
-                                         .transform_values(&:length)
+                                          .transform_values(&:length)
     
     {
       total_interactions: interactions_data.length,
