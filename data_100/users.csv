@@ -1,0 +1,101 @@
+user_id,gender,age,favorite_lang,uses_vim,ai_assistant,os,editor,coding_hours_per_day,night_owl,extroversion_tag,favorite_alcohol
+1,male,42,Go,0,Gemini,windows,Atom,5,1,introvert,Highball
+2,male,50,JavaScript,0,ChatGPT,windows,Atom,2,1,extrovert,Cafe Latte
+3,male,45,Ruby,1,,windows,VSCode,10,1,extrovert,Cocktail
+4,female,47,Java,0,,mac,Vim,3,0,introvert,Cafe Latte
+5,male,39,Python,1,Copilot,windows,Sublime,7,0,extrovert,Highball
+6,female,45,Python,1,Claude,mac,VSCode,12,0,extrovert,Beer
+7,female,22,Python,1,Gemini,linux,Vim,2,0,extrovert,IPA
+8,female,48,C++,0,ChatGPT,windows,Atom,5,1,extrovert,IPA
+9,female,36,Go,1,Copilot,mac,JetBrains,9,0,introvert,Cafe Latte
+10,male,48,JavaScript,0,,mac,VSCode,10,0,introvert,Cafe Latte
+11,female,23,Go,0,Copilot,linux,Atom,12,0,introvert,Beer
+12,female,35,C++,1,,linux,Vim,11,0,extrovert,Highball
+13,female,46,JavaScript,0,Copilot,windows,Sublime,3,1,introvert,Beer
+14,male,28,JavaScript,1,Claude,linux,VSCode,8,1,introvert,Cafe Latte
+15,female,28,Java,1,,windows,Sublime,7,0,introvert,Beer
+16,female,29,Python,1,,windows,VSCode,11,1,introvert,Cafe Latte
+17,male,35,Java,1,Gemini,linux,Sublime,4,0,extrovert,Wine
+18,male,42,C++,1,Claude,windows,Vim,7,0,extrovert,Lemon Sour
+19,male,37,JavaScript,0,Gemini,linux,JetBrains,2,1,introvert,Beer
+20,male,43,Python,1,Copilot,windows,Vim,11,0,introvert,Lemon Sour
+21,female,22,C++,0,Copilot,mac,VSCode,2,0,extrovert,Beer
+22,female,43,TypeScript,0,Copilot,windows,Vim,10,1,extrovert,Highball
+23,male,48,TypeScript,1,Gemini,mac,VSCode,8,0,extrovert,Wine
+24,male,24,JavaScript,1,ChatGPT,windows,Vim,9,1,extrovert,Cafe Latte
+25,female,45,Python,1,Claude,windows,Vim,7,0,extrovert,IPA
+26,male,31,Ruby,0,Copilot,mac,Vim,2,0,extrovert,Wine
+27,female,43,Python,0,Copilot,linux,Vim,2,1,introvert,Wine
+28,female,44,Ruby,0,,mac,Atom,11,0,introvert,IPA
+29,male,28,TypeScript,0,ChatGPT,linux,JetBrains,5,1,extrovert,IPA
+30,male,35,C++,1,,linux,VSCode,10,1,introvert,Highball
+31,female,32,Ruby,1,Gemini,windows,Vim,11,1,introvert,Highball
+32,male,22,Python,1,ChatGPT,mac,Sublime,10,1,introvert,Cocktail
+33,female,20,Go,0,Claude,linux,Sublime,4,1,extrovert,IPA
+34,female,30,Ruby,1,,mac,JetBrains,6,1,extrovert,Cocktail
+35,female,22,Ruby,0,ChatGPT,windows,VSCode,10,0,extrovert,Cocktail
+36,female,48,Ruby,0,Gemini,windows,Vim,11,1,extrovert,Cocktail
+37,female,47,Java,0,Gemini,linux,Vim,9,0,introvert,Wine
+38,male,45,JavaScript,1,ChatGPT,windows,Atom,4,0,extrovert,Lemon Sour
+39,female,33,TypeScript,1,ChatGPT,windows,Vim,10,1,introvert,Lemon Sour
+40,male,28,Go,1,Copilot,windows,Atom,4,0,extrovert,Lemon Sour
+41,male,30,C++,1,Copilot,mac,VSCode,4,0,introvert,Lemon Sour
+42,male,28,TypeScript,1,Claude,windows,Vim,7,0,introvert,Cocktail
+43,female,39,Python,1,Claude,windows,VSCode,9,1,extrovert,IPA
+44,male,28,TypeScript,0,,mac,JetBrains,11,0,introvert,Beer
+45,female,32,Go,0,Gemini,linux,Sublime,10,0,introvert,Lemon Sour
+46,male,45,TypeScript,1,Copilot,mac,JetBrains,5,1,extrovert,Beer
+47,male,38,C++,1,Gemini,windows,Vim,7,0,introvert,IPA
+48,female,20,TypeScript,1,ChatGPT,linux,Vim,8,0,introvert,Lemon Sour
+49,male,42,TypeScript,1,Copilot,windows,VSCode,8,0,extrovert,Highball
+50,female,39,C++,0,Gemini,windows,Atom,6,0,introvert,Cafe Latte
+51,male,45,Python,0,Copilot,mac,Vim,8,1,introvert,Wine
+52,female,44,JavaScript,1,Claude,linux,Vim,9,0,introvert,Lemon Sour
+53,male,31,JavaScript,0,,mac,JetBrains,12,1,introvert,Wine
+54,male,37,Go,1,Claude,windows,Atom,7,0,introvert,IPA
+55,male,29,Java,0,Gemini,linux,Sublime,3,0,introvert,Lemon Sour
+56,male,35,C++,1,Gemini,linux,JetBrains,9,0,extrovert,Highball
+57,female,24,Ruby,0,,mac,VSCode,11,0,extrovert,Cocktail
+58,female,28,C++,1,ChatGPT,linux,JetBrains,12,1,extrovert,Cocktail
+59,male,21,Ruby,0,,mac,Vim,10,1,extrovert,IPA
+60,female,49,C++,0,,windows,Vim,5,0,introvert,Cocktail
+61,male,36,C++,0,Gemini,linux,VSCode,12,1,extrovert,IPA
+62,male,33,Python,1,Copilot,linux,Sublime,6,0,extrovert,Cafe Latte
+63,male,41,Go,0,Claude,mac,Atom,6,1,introvert,Highball
+64,male,47,Ruby,0,Claude,linux,Vim,11,1,introvert,Cocktail
+65,female,37,Go,0,ChatGPT,mac,Vim,4,1,extrovert,Wine
+66,male,34,Go,0,Copilot,mac,Sublime,3,1,extrovert,IPA
+67,male,22,Python,0,Claude,windows,JetBrains,11,0,introvert,Cocktail
+68,female,44,Python,1,Copilot,windows,Vim,3,1,extrovert,Highball
+69,female,35,JavaScript,1,Copilot,mac,Atom,9,0,extrovert,Cocktail
+70,female,28,Java,0,Claude,linux,Atom,12,0,introvert,Lemon Sour
+71,male,21,TypeScript,0,Copilot,mac,Sublime,10,0,introvert,Wine
+72,female,48,TypeScript,0,ChatGPT,windows,Atom,11,1,introvert,Cocktail
+73,male,42,Java,0,Copilot,linux,Atom,11,0,extrovert,Lemon Sour
+74,male,32,TypeScript,1,,windows,VSCode,2,1,extrovert,Wine
+75,female,28,Java,0,Copilot,windows,VSCode,8,1,introvert,Beer
+76,male,21,Java,1,Copilot,linux,VSCode,10,0,extrovert,Wine
+77,male,43,Python,0,Gemini,windows,Atom,7,1,introvert,IPA
+78,female,28,Java,1,Claude,linux,VSCode,7,0,introvert,Lemon Sour
+79,male,36,Java,1,,mac,JetBrains,11,0,introvert,IPA
+80,male,50,Python,1,Gemini,windows,Atom,10,0,introvert,Cafe Latte
+81,male,41,Ruby,0,Claude,windows,Atom,2,0,extrovert,Cafe Latte
+82,male,24,C++,0,Gemini,windows,JetBrains,7,1,introvert,IPA
+83,female,39,JavaScript,1,,windows,Atom,4,1,extrovert,Cocktail
+84,male,48,TypeScript,1,Claude,linux,VSCode,3,1,introvert,Wine
+85,female,44,Go,1,,mac,Vim,12,1,extrovert,Beer
+86,female,22,Python,0,,mac,Atom,4,0,introvert,IPA
+87,male,23,Python,0,,mac,Sublime,6,0,introvert,Beer
+88,male,45,Java,0,Gemini,linux,Vim,6,1,introvert,Cafe Latte
+89,female,22,Python,1,Copilot,linux,Sublime,10,0,introvert,Highball
+90,male,31,Ruby,0,,mac,Sublime,8,1,extrovert,Cafe Latte
+91,female,29,Ruby,1,Claude,mac,Vim,2,1,extrovert,Lemon Sour
+92,male,21,Go,0,Claude,mac,Atom,12,0,extrovert,IPA
+93,male,47,Java,0,Claude,mac,Sublime,8,0,introvert,IPA
+94,male,28,Ruby,0,Claude,mac,Sublime,9,0,introvert,Lemon Sour
+95,male,28,Python,1,,windows,VSCode,3,1,introvert,Wine
+96,female,31,C++,1,ChatGPT,windows,Vim,3,1,introvert,Lemon Sour
+97,female,23,Go,1,Gemini,windows,Sublime,5,0,extrovert,Wine
+98,male,49,Java,1,Claude,mac,VSCode,3,1,introvert,Cafe Latte
+99,female,39,Python,1,Copilot,windows,Sublime,10,0,introvert,Cafe Latte
+100,male,39,Python,1,ChatGPT,windows,Vim,11,1,extrovert,Cocktail

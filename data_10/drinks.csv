@@ -1,0 +1,14 @@
+# drinks.csv
+drink_id,name,category,abv,ingredients
+1,"lemon_sour","sour",5,"shochu|soda|lemon"
+2,"highball_lemon","highball",7,"whisky|soda|lemon"
+3,"lemon_mojito","mojito",6,"rum|soda|lemon|mint|sugar"
+4,"orange_mojito","mojito",6,"rum|soda|orange|mint|sugar"
+5,"lemon_juice","juice",0,"lemon|sugar|water"
+6,"kahlua_milk","cocktail",5,"kahlua|milk"
+7,"peach_oolong","cocktail",8,"peach_liqueur|oolong_tea"
+8,"peach_highball","highball",7,"whisky|soda|peach_juice"
+9,"peach_mojito","mojito",6,"rum|soda|peach_juice|mint|sugar"
+10,"orange_oolong","sour",7,"brandy|lime|orange|oolong_tea"
+11,"peach_juice","juice",0,"peach_juice|sugar|water"
+12,"peach_sour","sour",5,"shochu|soda|peach_juice"

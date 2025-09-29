@@ -1,0 +1,12 @@
+# data/users.csv
+user_id,gender,age,favorite_lang,uses_vim,ai_assistant,os,editor,coding_hours_per_day,night_owl,extroversion_tag,favorite_alcohol
+1,male,28,Python,1,Copilot,mac,Vim,6,1,introvert,Lemon Sour
+2,female,32,Ruby,0,ChatGPT,windows,VSCode,4,0,extrovert,Highball
+3,male,24,JavaScript,1,Claude,linux,Vim,8,1,introvert,IPA
+4,female,29,Go,0,None,mac,VSCode,5,0,introvert,Cafe Latte
+5,male,35,Python,0,ChatGPT,mac,JetBrains,7,1,extrovert,Highball
+6,male,27,Ruby,1,Copilot,linux,Vim,5,1,introvert,Lemon Sour
+7,female,31,JavaScript,0,ChatGPT,windows,VSCode,3,0,extrovert,Cafe Latte
+8,male,30,Go,1,Claude,mac,Vim,6,1,introvert,IPA
+9,female,26,Python,0,None,linux,VSCode,4,0,introvert,Lemon Sour
+10,male,33,Ruby,1,Copilot,windows,Vim,7,1,extrovert,Highball
